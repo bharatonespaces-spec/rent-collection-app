@@ -351,11 +351,9 @@
                         
                         // Proceed to ensure initial data and set up listeners
                         ensureInitialDataAndListeners();
-                        document.getElementById('loading').classList.add('hidden');
                         document.getElementById('dashboard').classList.remove('hidden');
                     } else {
                         // If sign-in failed or user signed out, use a random ID and warn.
-                        userId = crypto.randomUUID();
                         document.getElementById('user-status').textContent = `Anon User: ${userId}`;
                         displayError("Authentication failed or not ready. Using local mock data structure.");
                     }
