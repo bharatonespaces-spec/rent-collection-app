@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bharat One Spaces Rent Collection</title>
+    <!-- Load Tailwind CSS from CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for branding and aesthetics */
+        :root {
+            --color-orange: #FF9933;
+            --color-white: #FFFFFF;
+            --color-green: #138808;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1e293b; /* Slate-800 dark theme */
+            color: #f1f5f9; /* Slate-100 */
+        }
+
+        .header-logo-text {
+            /* Applying Indian flag colors to letters */
+            background-image: linear-gradient(to right, var(--color-orange), var(--color-white), var(--color-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .card {
+            background-color: #334155; /* Slate-700 */
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-field {
+            background-color: #1e293b; /* Slate-800 */
+            border: 1px solid #475569; /* Slate-600 */
+            color: #f1f5f9;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .btn-primary {
+            background-color: var(--color-orange);
+            color: #1e293b;
+            font-weight: 600;
+            transition: all 0.15s;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            box-shadow: 0 5px 15px rgba(255, 153, 51, 0.4);
+        }
+
+        .tab-button.active {
+            border-bottom: 3px solid var(--color-orange);
+            color: var(--color-orange);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app" class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-gray-900 shadow-lg p-4 sticky top-0 z-10">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-3xl header-logo-text">BHARAT 1 SPACES</h1>
+                <div class="text-sm text-gray-400">
+                    <span id="user-status" class="hidden sm:inline">...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="bg-gray-800 shadow-md">
+            <div class="container mx-auto flex justify-around sm:justify-start">
+                <button class="tab-button active p-3 sm:px-6 transition duration-150 ease-in-out" onclick="showView('dashboard')">Dashboard</button>
+                <button class="tab-button p-3 sm:px-6 transition duration-150 ease-in-out" onclick="showView('rent-collection')">Rent Collection</button>
+                <button class="tab-button p-3 sm:px-6 transition duration-150 ease-in-out" onclick="showView('expenses')">Owner Payouts</button>
+                <button class="tab-button p-3 sm:px-6 transition duration-150 ease-in-out" onclick="showView('documents')">Documents</button>
+            </div>
+        </nav>
+
+        <main class="container mx-auto p-4 flex-grow">
+            <!-- Loading Indicator & Error Messages -->
+            <div id="loading" class="text-center p-8 text-xl">
+                Loading Application Data...
+            </div>
+            <div id="error-message" class="hidden bg-red-800 p-3 rounded-lg text-red-100 mb-4" role="alert"></div>
+
+            <!-- Dashboard View -->
+            <section id="dashboard" class="view">
+                <h2 class="text-2xl font-bold mb-6 text-orange-400">Cash Flow Summary</h2>
+                <div id="summary-cards" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Cards will be injected here -->
+                </div>
+
+                <h3 class="text-xl font-semibold mb-4 text-white">Cash Float Balances</h3>
+                <div id="float-balances" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Float balances will be injected here -->
+                </div>
+
+                <h3 class="text-xl font-semibold mb-4 text-white">Recent Transactions</h3>
+                <div class="card p-4 overflow-x-auto">
+                    <table class="min-w-full text-left text-sm whitespace-nowrap">
+                        <thead>
+                            <tr class="text-gray-400 border-b border-gray-600">
+                                <th class="p-2">Date</th>
+                                <th class="p-2">Type</th>
+                                <th class="p-2">Category</th>
+                                <th class="p-2">Unit/Owner</th>
+                                <th class="p-2">Amount (₹)</th>
+                                <th class="p-2">Float</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactions-list">
+                            <!-- Transactions will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Rent Collection View -->
+            <section id="rent-collection" class="view hidden">
+                <h2 class="text-2xl font-bold mb-6 text-orange-400">Collect Rent (Tenant Income)</h2>
+                <div class="card p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="tenant-unit" class="block text-sm font-medium mb-1">Tenant/Unit (57 Options)</label>
+                                <select id="tenant-unit" class="w-full input-field">
+                                    <!-- Options will be populated here -->
+                                </select>
+                            </div>
+                            <div>
+                                <label for="rent-amount" class="block text-sm font-medium mb-1">Amount (₹)</label>
+                                <input type="number" id="rent-amount" class="w-full input-field" placeholder="e.g., 15000">
+                            </div>
+                            <div>
+                                <label for="rent-method" class="block text-sm font-medium mb-1">Payment Method</label>
+                                <select id="rent-method" class="w-full input-field" onchange="toggleQrCode(this.value)">
+                                    <option value="CASH">CASH</option>
+                                    <option value="BANK_TRANSFER">BANK TRANSFER</option>
+                                    <option value="UPI_QR">UPI QR Code</option>
+                                </select>
+                            </div>
+                            <div id="rent-float-container">
+                                <label for="rent-float" class="block text-sm font-medium mb-1">Collecting Cash Float</label>
+                                <select id="rent-float" class="w-full input-field">
+                                    <!-- Options will be populated here (excluding Suyog) -->
+                                </select>
+                                <p class="text-xs mt-1 text-yellow-400">If payment is CASH, it goes into the selected float.</p>
+                            </div>
+                            <div>
+                                <label for="rent-bank-account" class="block text-sm font-medium mb-1">Target Bank Account (for Transfers)</label>
+                                <select id="rent-bank-account" class="w-full input-field">
+                                    <!-- Options will be populated here -->
+                                </select>
+                                <p class="text-xs mt-1 text-yellow-400">If payment is BANK/QR, it goes into the selected bank account.</p>
+                            </div>
+                            <button id="collect-rent-btn" class="w-full btn-primary p-3 rounded-lg mt-4" onclick="recordRentCollection()">Record Rent Collection</button>
+                        </div>
+                    </div>
+
+                    <!-- QR Code Display Area -->
+                    <div id="qr-code-area" class="card p-4 bg-gray-800 hidden flex flex-col items-center justify-center">
+                        <h4 class="text-xl font-semibold mb-3 text-white">UPI QR Code Generator (For Tenant Only)</h4>
+                        <div id="qrcode-container" class="p-3 bg-white rounded-lg shadow-xl">
+                            <canvas id="qrcode-canvas"></canvas>
+                        </div>
+                        <p class="text-sm mt-3 text-green-400">Scan this QR code to complete the payment.</p>
+                        <p class="text-xs mt-1 text-red-400">Note: This is a simulated UPI link for rent collection only.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Expenses View -->
+            <section id="expenses" class="view hidden">
+                <h2 class="text-2xl font-bold mb-6 text-orange-400">Owner Payouts (Expense Tracking)</h2>
+                <div class="card p-6 space-y-4">
+                    <p class="text-lg font-semibold text-red-400">CRITICAL RULE: Owner Payouts MUST be CASH ONLY from a Cash Float.</p>
+
+                    <div>
+                        <label for="owner-select" class="block text-sm font-medium mb-1">Property Owner</label>
+                        <select id="owner-select" class="w-full input-field">
+                            <!-- Options will be populated here -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="owner-payout-amount" class="block text-sm font-medium mb-1">Amount (₹) - Fixed Payout is ₹12,349</label>
+                        <input type="number" id="owner-payout-amount" class="w-full input-field" value="12349" placeholder="e.g., 12349">
+                    </div>
+                    <div>
+                        <label for="payout-float" class="block text-sm font-medium mb-1">Source Cash Float (CASH ONLY)</label>
+                        <select id="payout-float" class="w-full input-field">
+                            <!-- Options will be populated here (excluding Suyog) -->
+                        </select>
+                    </div>
+                    <button class="w-full btn-primary p-3 rounded-lg mt-4" onclick="recordOwnerPayout()">Record Owner Payout</button>
+                </div>
+            </section>
+
+            <!-- Documents View -->
+            <section id="documents" class="view hidden">
+                <h2 class="text-2xl font-bold mb-6 text-orange-400">Document Management (Mock)</h2>
+                <div class="card p-6">
+                    <p class="mb-4">This section tracks important documents related to the tenants and properties. In a full system, documents would be uploaded to Firebase Storage, but here we list document titles and status for record keeping.</p>
+                    <div class="space-y-4">
+                        <div class="flex space-x-2">
+                            <input type="text" id="document-title" class="flex-grow input-field" placeholder="Enter new document title (e.g., Tenant B1-1 Agreement)">
+                            <button class="btn-primary p-2 rounded-lg" onclick="addDocument()">Add Document</button>
+                        </div>
+                        <ul id="document-list" class="space-y-2">
+                            <!-- Documents will be injected here -->
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Modal for Alerts (replacing alert()) -->
+            <div id="custom-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50">
+                <div class="bg-gray-700 p-6 rounded-lg shadow-2xl w-full max-w-sm">
+                    <h3 id="modal-title" class="text-xl font-bold mb-3 text-white"></h3>
+                    <p id="modal-message" class="mb-4 text-gray-200"></p>
+                    <button class="w-full btn-primary p-2 rounded-lg" onclick="closeModal()">OK</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Firebase v9 Modular SDK -->
+    <script type="module">
+        import { initializeApp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot, query, serverTimestamp, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import "https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js";
+
+        // Global variables provided by the Canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'bharat-one-spaces';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        if (Object.keys(firebaseConfig).length === 0 || initialAuthToken === null) {
+            console.error("Firebase config or initial auth token is missing. Using hardcoded mock data/config.");
+            // Fallback config from user requirements
+            window.firebaseConfig = {
+                apiKey: "AIzaSyBqOWhjcTprZZn58C-F7pxedOmINpnM",
+                authDomain: "bharat-one-spaces.firebaseapp.com",
+                projectId: "bharat-one-spaces",
+                storageBucket: "bharat-one-spaces.firebasestorage.app",
+                messagingSenderId: "221326819338",
+                appId: "1:221326819338:web:edb1a476b5e24115e19ff3",
+                measurementId: "G-5EKKWQ3CCD"
+            };
+        } else {
+            window.firebaseConfig = firebaseConfig;
+        }
+        
+        // Log level set to debug for better diagnostics
+        setLogLevel('debug');
+        
+        let app, db, auth, userId, isAuthReady = false;
+
+        // Application Data Store
+        window.appData = {
+            transactions: [],
+            floats: [],
+            owners: [],
+            banks: [],
+            tenants: [],
+            documents: []
+        };
+
+        // --- Core Data Definitions ---
+        const CASH_FLOAT_NAMES = [
+            { name: "Mr. Shankar (Pune)", phone: "988142904" },
+            { name: "KV Cash", phone: "N/A" },
+            { name: "Mr. Suyog (Navi Mumbai) - NO PAYMENTS", phone: "7498976767" } // Communication only
+        ];
+
+        const OWNER_NAMES = [
+            { name: "Vikram Daga", fixedPayout: 12349 },
+            { name: "Nilesh Daga", fixedPayout: 12349 },
+            { name: "Raju Oswal", fixedPayout: 12349 },
+            { name: "Badambai Daga", fixedPayout: 12349 }
+        ];
+
+        const BANK_ACCOUNTS = [
+            "Eiffel City", "HIG Maintenance", "Nipun Gupta", "Urmi Gupta", "Indian Overseas Bank"
+        ];
+
+        // Generating 57 unique tenant unit identifiers (T-01 to T-57)
+        const TENANT_UNITS = Array.from({ length: 57 }, (_, i) => {
+            const num = (i + 1).toString().padStart(2, '0');
+            if (i < 15) return `B-${num}`;
+            if (i < 35) return `O-${num}`;
+            return `S-${num}`;
+        });
+
+        // --- UI Helper Functions ---
+        window.showModal = function(title, message) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('custom-modal').classList.remove('hidden');
+            document.getElementById('custom-modal').classList.add('flex');
+        }
+
+        window.closeModal = function() {
+            document.getElementById('custom-modal').classList.add('hidden');
+            document.getElementById('custom-modal').classList.remove('flex');
+        }
+
+        window.displayError = function(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = `Error: ${message}`;
+            errorElement.classList.remove('hidden');
+            console.error(message);
+        }
+
+        window.showView = function(viewId) {
+            document.querySelectorAll('.view').forEach(view => view.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[onclick="showView('${viewId}')"]`).classList.add('active');
+        }
+
+        // --- Data Persistence and Initialization ---
+
+        async function initFirebase() {
+            document.getElementById('loading').textContent = "Initializing Firebase...";
+            try {
+                app = initializeApp(window.firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                // 1. Initial Authentication
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                // 2. Auth State Listener to set User ID and start data fetching
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        document.getElementById('user-status').textContent = `User: ${userId}`;
+                        isAuthReady = true;
+                        
+                        // Proceed to ensure initial data and set up listeners
+                        ensureInitialDataAndListeners();
+                        document.getElementById('loading').classList.add('hidden');
+                        document.getElementById('dashboard').classList.remove('hidden');
+                    } else {
+                        // If sign-in failed or user signed out, use a random ID and warn.
+                        userId = crypto.randomUUID();
+                        document.getElementById('user-status').textContent = `Anon User: ${userId}`;
+                        displayError("Authentication failed or not ready. Using local mock data structure.");
+                    }
+                });
+
+            } catch (e) {
+                document.getElementById('loading').textContent = "Initialization Failed.";
+                displayError("Firebase initialization or sign-in failed: " + e.message);
+            }
+        }
+
+        function getCollectionPath(collectionName) {
+            // Private data path for this specific business application
+            return `artifacts/${appId}/users/${userId}/${collectionName}`;
+        }
+
+        async function ensureInitialDataAndListeners() {
+            if (!isAuthReady) return;
+
+            // Ensure Cash Floats, Owners, Banks, Tenants data exists, then setup listeners
+            await ensureFloats();
+            await ensureOwners();
+            await ensureBanks();
+            await ensureTenants();
+            await ensureMockDocuments();
+
+            // Setup Real-time Listeners
+            setupTransactionListener();
+            setupDocumentListener();
+            setupFloatListener();
+
+            // Populate static dropdowns
+            populateDropdowns();
+        }
+
+        // --- Initial Data Population (Set/Update logic) ---
+        async function ensureFloats() {
+            const floatRef = collection(db, getCollectionPath('cashFloats'));
+            for (const float of CASH_FLOAT_NAMES) {
+                // Use the name as a unique ID for simple lookup/update
+                await setDoc(doc(floatRef, float.name.replace(/[^a-zA-Z0-9]/g, '-')), {
+                    name: float.name,
+                    phone: float.phone,
+                    balance: 0,
+                    lastUpdated: serverTimestamp()
+                }, { merge: true });
+            }
+        }
+
+        async function ensureOwners() {
+            const ownerRef = collection(db, getCollectionPath('owners'));
+            for (const owner of OWNER_NAMES) {
+                await setDoc(doc(ownerRef, owner.name.replace(/[^a-zA-Z0-9]/g, '-')), {
+                    name: owner.name,
+                    fixedPayout: owner.fixedPayout
+                }, { merge: true });
+            }
+        }
+
+        async function ensureBanks() {
+            const bankRef = collection(db, getCollectionPath('bankAccounts'));
+            for (const bankName of BANK_ACCOUNTS) {
+                await setDoc(doc(bankRef, bankName.replace(/[^a-zA-Z0-9]/g, '-')), {
+                    name: bankName
+                }, { merge: true });
+            }
+        }
+
+        async function ensureTenants() {
+            const tenantRef = collection(db, getCollectionPath('tenants'));
+            for (const unit of TENANT_UNITS) {
+                await setDoc(doc(tenantRef, unit), {
+                    unit: unit,
+                    rentDue: 15000 + Math.floor(Math.random() * 5000), // Mock due amount
+                }, { merge: true });
+            }
+        }
+
+        async function ensureMockDocuments() {
+             const docRef = collection(db, getCollectionPath('documents'));
+             const existingDocs = await getDocs(docRef);
+             if (existingDocs.empty) {
+                await addDoc(docRef, { title: 'Master Property Lease Agreement', status: 'Active', timestamp: serverTimestamp() });
+                await addDoc(docRef, { title: 'Tenant B-01 Rent Contract', status: 'Active', timestamp: serverTimestamp() });
+             }
+        }
+
+        // --- Real-time Listeners and Rendering ---
+
+        function setupTransactionListener() {
+            const q = query(collection(db, getCollectionPath('transactions')));
+            onSnapshot(q, (snapshot) => {
+                window.appData.transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                window.appData.transactions.sort((a, b) => (b.date?.seconds || 0) - (a.date?.seconds || 0));
+                renderDashboard();
+                renderTransactions();
+            }, (error) => displayError("Error fetching transactions: " + error.message));
+        }
+        
+        function setupFloatListener() {
+            const q = query(collection(db, getCollectionPath('cashFloats')));
+            onSnapshot(q, (snapshot) => {
+                window.appData.floats = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderFloatBalances();
+                // Re-populate dropdowns to reflect latest balances if needed
+                populateDropdowns();
+            }, (error) => displayError("Error fetching cash floats: " + error.message));
+        }
+
+        function setupDocumentListener() {
+            const q = query(collection(db, getCollectionPath('documents')));
+            onSnapshot(q, (snapshot) => {
+                window.appData.documents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderDocuments();
+            }, (error) => displayError("Error fetching documents: " + error.message));
+        }
+
+        // --- Rendering Functions ---
+
+        function renderDashboard() {
+            const totalRent = window.appData.transactions
+                .filter(t => t.type === 'INCOME')
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            const totalPayout = window.appData.transactions
+                .filter(t => t.type === 'EXPENSE')
+                .reduce((sum, t) => sum + t.amount, 0);
+
+            const netFlow = totalRent - totalPayout;
+
+            const cardsHtml = `
+                <div class="card p-4 text-center">
+                    <p class="text-sm text-gray-400">Total Rent Collected</p>
+                    <p class="text-3xl font-bold text-green-400">₹${totalRent.toLocaleString('en-IN')}</p>
+                </div>
+                <div class="card p-4 text-center">
+                    <p class="text-sm text-gray-400">Total Owner Payouts</p>
+                    <p class="text-3xl font-bold text-red-400">₹${totalPayout.toLocaleString('en-IN')}</p>
+                </div>
+                <div class="card p-4 text-center">
+                    <p class="text-sm text-gray-400">Net Cash Flow</p>
+                    <p class="text-3xl font-bold ${netFlow >= 0 ? 'text-blue-400' : 'text-red-500'}">₹${netFlow.toLocaleString('en-IN')}</p>
+                </div>
+            `;
+            document.getElementById('summary-cards').innerHTML = cardsHtml;
+        }
+
+        function renderFloatBalances() {
+            const balancesHtml = window.appData.floats.map(float => {
+                const isSuyog = float.name.includes('Suyog');
+                const balanceClass = isSuyog ? 'text-yellow-400' : (float.balance >= 0 ? 'text-green-400' : 'text-red-500');
+                const statusText = isSuyog ? ' (Communication Only)' : '';
+                return `
+                    <div class="card p-4">
+                        <p class="text-sm text-gray-400">${float.name}${statusText}</p>
+                        <p class="text-2xl font-bold ${balanceClass}">₹${float.balance.toLocaleString('en-IN')}</p>
+                        ${!isSuyog ? `<p class="text-xs text-gray-400">Phone: ${float.phone}</p>` : `<p class="text-xs text-red-300">NO PAYMENTS VIA THIS FLOAT</p>`}
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('float-balances').innerHTML = balancesHtml;
+        }
+
+        function renderTransactions() {
+            const listHtml = window.appData.transactions.slice(0, 10).map(t => {
+                const date = t.date ? new Date(t.date.seconds * 1000).toLocaleDateString() : 'N/A';
+                const typeClass = t.type === 'INCOME' ? 'text-green-400' : 'text-red-400';
+                return `
+                    <tr class="hover:bg-gray-600 transition duration-100 border-b border-gray-700">
+                        <td class="p-2">${date}</td>
+                        <td class="p-2 ${typeClass}">${t.type}</td>
+                        <td class="p-2">${t.category}</td>
+                        <td class="p-2">${t.unit || t.owner}</td>
+                        <td class="p-2 font-semibold ${typeClass}">${t.type === 'INCOME' ? '+' : '-'} ₹${t.amount.toLocaleString('en-IN')}</td>
+                        <td class="p-2">${t.floatSource || 'Bank/QR'}</td>
+                    </tr>
+                `;
+            }).join('');
+            document.getElementById('transactions-list').innerHTML = listHtml || '<tr><td colspan="6" class="p-4 text-center text-gray-400">No transactions recorded yet.</td></tr>';
+        }
+
+        function renderDocuments() {
+            const listHtml = window.appData.documents.map(doc => `
+                <li class="card p-3 flex justify-between items-center text-gray-200">
+                    <span>${doc.title}</span>
+                    <span class="text-sm text-green-400">${doc.status}</span>
+                </li>
+            `).join('');
+            document.getElementById('document-list').innerHTML = listHtml;
+        }
+
+        function populateDropdowns() {
+            const tenantDropdown = document.getElementById('tenant-unit');
+            const ownerDropdown = document.getElementById('owner-select');
+            const rentFloatDropdown = document.getElementById('rent-float');
+            const payoutFloatDropdown = document.getElementById('payout-float');
+            const bankAccountDropdown = document.getElementById('rent-bank-account');
+            
+            tenantDropdown.innerHTML = TENANT_UNITS.map(unit => `<option value="${unit}">${unit}</option>`).join('');
+            ownerDropdown.innerHTML = OWNER_NAMES.map(owner => `<option value="${owner.name}">${owner.name} (₹${owner.fixedPayout.toLocaleString('en-IN')})</option>`).join('');
+            bankAccountDropdown.innerHTML = BANK_ACCOUNTS.map(bank => `<option value="${bank}">${bank}</option>`).join('');
+
+            // Filter floats: EXCLUDE Suyog for payment methods
+            const paymentFloats = window.appData.floats.filter(f => !f.name.includes('Suyog'));
+            
+            const floatOptions = paymentFloats.map(float => `<option value="${float.name}">${float.name} (Bal: ₹${float.balance.toLocaleString('en-IN')})</option>`).join('');
+            
+            rentFloatDropdown.innerHTML = floatOptions;
+            payoutFloatDropdown.innerHTML = floatOptions;
+        }
+
+        // --- Transaction Logic ---
+
+        async function recordRentCollection() {
+            if (!isAuthReady) return showModal("Error", "Application not fully initialized. Please wait.");
+
+            const unit = document.getElementById('tenant-unit').value;
+            const amount = parseFloat(document.getElementById('rent-amount').value);
+            const method = document.getElementById('rent-method').value;
+            const floatName = document.getElementById('rent-float').value;
+            const bankAccount = document.getElementById('rent-bank-account').value;
+
+            if (!unit || !amount || amount <= 0) {
+                return showModal("Input Error", "Please select a unit and enter a valid positive amount.");
+            }
+
+            const isCash = method === 'CASH';
+            const floatDocId = floatName.replace(/[^a-zA-Z0-9]/g, '-');
+            const floatData = window.appData.floats.find(f => f.name === floatName);
+
+            // CRITICAL RULE: Prevent payments via Mr. Suyog's entry
+            if (isCash && floatData && floatData.name.includes('Suyog')) {
+                return showModal("Rule Violation", "Mr. Suyog (Navi Mumbai) is for communication only and cannot be used as a cash collection point.");
+            }
+            
+            // Determine transaction details
+            const transactionData = {
+                type: 'INCOME',
+                category: 'RENT',
+                unit: unit,
+                amount: amount,
+                date: serverTimestamp(),
+                method: method,
+                floatSource: isCash ? floatName : 'N/A',
+                bankAccount: !isCash ? bankAccount : 'N/A'
+            };
+
+            try {
+                // 1. Record Transaction
+                await addDoc(collection(db, getCollectionPath('transactions')), transactionData);
+
+                // 2. Update Float/Bank Balance
+                if (isCash) {
+                    const floatRef = doc(db, getCollectionPath('cashFloats'), floatDocId);
+                    const newBalance = (floatData.balance || 0) + amount;
+                    await updateDoc(floatRef, { balance: newBalance });
+                }
+                
+                showModal("Success", `₹${amount.toLocaleString('en-IN')} rent collected for ${unit} via ${method}.`);
+                document.getElementById('rent-amount').value = ''; // Clear amount
+                toggleQrCode('CASH'); // Reset view
+            } catch (e) {
+                showModal("System Error", "Failed to record transaction or update balance: " + e.message);
+            }
+        }
+
+        async function recordOwnerPayout() {
+            if (!isAuthReady) return showModal("Error", "Application not fully initialized. Please wait.");
+
+            const owner = document.getElementById('owner-select').value.split('(')[0].trim();
+            const amount = parseFloat(document.getElementById('owner-payout-amount').value);
+            const floatName = document.getElementById('payout-float').value;
+
+            if (!owner || !amount || amount <= 0) {
+                return showModal("Input Error", "Please select an owner and enter a valid positive amount.");
+            }
+
+            // CRITICAL RULE: Owner payments must be CASH ONLY from Cash Floats.
+            const floatDocId = floatName.replace(/[^a-zA-Z0-9]/g, '-');
+            const floatData = window.appData.floats.find(f => f.name === floatName);
+
+            // CRITICAL RULE: Prevent payments via Mr. Suyog's entry
+            if (floatData && floatData.name.includes('Suyog')) {
+                return showModal("Rule Violation", "Mr. Suyog (Navi Mumbai) is for communication only and cannot be used as a cash source.");
+            }
+
+            if (!floatData || floatData.balance < amount) {
+                return showModal("Insufficient Funds", `The selected float (${floatName}) has insufficient balance to cover the ₹${amount.toLocaleString('en-IN')} payout.`);
+            }
+            
+            const transactionData = {
+                type: 'EXPENSE',
+                category: 'OWNER_PAYOUT',
+                owner: owner,
+                amount: amount,
+                date: serverTimestamp(),
+                method: 'CASH', // CRITICAL RULE
+                floatSource: floatName
+            };
+
+            try {
+                // 1. Record Transaction
+                await addDoc(collection(db, getCollectionPath('transactions')), transactionData);
+
+                // 2. Update Float Balance
+                const floatRef = doc(db, getCollectionPath('cashFloats'), floatDocId);
+                const newBalance = floatData.balance - amount;
+                await updateDoc(floatRef, { balance: newBalance });
+                
+                showModal("Success", `₹${amount.toLocaleString('en-IN')} paid to ${owner} from ${floatName}.`);
+                document.getElementById('owner-payout-amount').value = '12349'; // Reset amount
+            } catch (e) {
+                showModal("System Error", "Failed to record payout or update balance: " + e.message);
+            }
+        }
+
+        // --- QR Code & Document Features ---
+        
+        window.toggleQrCode = function(method) {
+            const qrArea = document.getElementById('qr-code-area');
+            const floatContainer = document.getElementById('rent-float-container');
+            const bankAccountDropdown = document.getElementById('rent-bank-account');
+
+            // Toggle visibility based on method
+            if (method === 'UPI_QR') {
+                qrArea.classList.remove('hidden');
+                qrArea.classList.add('flex');
+                floatContainer.classList.add('hidden');
+                bankAccountDropdown.parentElement.classList.remove('hidden');
+
+                // Generate QR Code
+                const amount = document.getElementById('rent-amount').value || '0';
+                const unit = document.getElementById('tenant-unit').value;
+                const bank = document.getElementById('rent-bank-account').value;
+                
+                // Mock UPI ID based on selected bank
+                const pa = (bank.replace(/\s/g, '').toLowerCase() + '@upi').substring(0, 15); 
+                const upiUrl = `upi://pay?pa=${pa}&pn=Bharat%201%20Spaces&am=${amount}&cu=INR&tid=${Date.now()}&tn=Rent%20for%20Unit%20${unit}`;
+                
+                const canvasContainer = document.getElementById('qrcode-container');
+                canvasContainer.innerHTML = '<canvas id="qrcode-canvas"></canvas>'; // Clear previous
+                new QRCode(document.getElementById("qrcode-canvas"), {
+                    text: upiUrl,
+                    width: 180,
+                    height: 180,
+                    colorDark: "#1e293b",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            } else if (method === 'CASH') {
+                qrArea.classList.add('hidden');
+                qrArea.classList.remove('flex');
+                floatContainer.classList.remove('hidden');
+                bankAccountDropdown.parentElement.classList.add('hidden');
+            } else { // BANK_TRANSFER
+                 qrArea.classList.add('hidden');
+                 qrArea.classList.remove('flex');
+                 floatContainer.classList.add('hidden');
+                 bankAccountDropdown.parentElement.classList.remove('hidden');
+            }
+        }
+        
+        window.addDocument = async function() {
+            if (!isAuthReady) return showModal("Error", "Application not fully initialized. Please wait.");
+            
+            const title = document.getElementById('document-title').value.trim();
+            if (!title) return showModal("Input Error", "Please enter a document title.");
+
+            try {
+                await addDoc(collection(db, getCollectionPath('documents')), {
+                    title: title,
+                    status: 'Pending Review',
+                    timestamp: serverTimestamp()
+                });
+                showModal("Success", `Document "${title}" added to the list.`);
+                document.getElementById('document-title').value = '';
+            } catch (e) {
+                showModal("System Error", "Failed to add document: " + e.message);
+            }
+        }
+
+        // --- Initial Load ---
+        window.onload = initFirebase;
+    </script>
+</body>
+</html>
