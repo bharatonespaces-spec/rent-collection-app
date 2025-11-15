@@ -333,23 +333,28 @@ import { getFirestore        , limit, collection, doc, setDoc, addDoc, onSnapsho
             try {
                 app = initializeApp(window.firebaseConfig);
                 db = getFirestore(app);
+                    console.log('🚀 INIT: Starting Firebase initialization...');
                 auth = getAuth(app);
+                        console.log('✅ AUTH: Firebase auth initialized');
                 
                 // 1. Initial Authentication
                 if (initialAuthToken) {
                     await signInWithCustomToken(auth, initialAuthToken);
                 } else {
                     await signInAnonymously(auth);
+                            console.log('✅ AUTH: Anonymous sign-in completed');
                 }
 
                 // 2. Auth State Listener to set User ID and start data fetching
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
+                                    console.log('👤 USER: User authenticated, UID:', userId);
                         userId = user.uid;
                         document.getElementById('user-status').textContent = `User: ${userId}`;
                         isAuthReady = true;
                         
                         // Proceed to ensure initial data and set up listeners
+            console.log('📦 DATA: Starting data initialization...');
                         ensureInitialDataAndListeners();
                         document.getElementById('dashboard').classList.remove('hidden');
                     } else {
@@ -399,6 +404,7 @@ import { getFirestore        , limit, collection, doc, setDoc, addDoc, onSnapsho
             // Load cash floats
             const floatsSnapshot = await getDocs(collection(db, getCollectionPath('cashFloats')));
             const floats = [];
+                console.log('📊 LOAD: Starting dashboard data load...');
             floatsSnapshot.forEach(doc => {
                 floats.push({ id: doc.id, ...doc.data() });
             });
@@ -448,10 +454,10 @@ import { getFirestore        , limit, collection, doc, setDoc, addDoc, onSnapsho
                 transactionsBody.innerHTML = html;
             }
             
-            console.log('Dashboard data loaded successfully');
-
+        console.log('✅ SUCCESS: Dashboard data loaded, hiding loading indicator');
         } catch (error) {
             console.error('Error loading dashboard data:', error);
+                    console.log('❌ ERROR: Dashboard load failed, but will still hide loading');
                     } finally {
             // Always hide loading indicator whether successful or error
             document.getElementById('loading').classList.add('hidden');
