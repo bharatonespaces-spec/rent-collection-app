@@ -450,13 +450,12 @@
             
             console.log('Dashboard data loaded successfully');
 
-                    // Hide loading indicator
-        document.getElementById('loading').classList.add('hidden');
         } catch (error) {
             console.error('Error loading dashboard data:', error);
-        }
-    }
-
+                    } finally {
+            // Always hide loading indicator whether successful or error
+            document.getElementById('loading').classList.add('hidden');
+        
         // --- Initial Data Population (Set/Update logic) ---
         async function ensureFloats() {
             const floatRef = collection(db, getCollectionPath('cashFloats'));
