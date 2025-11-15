@@ -236,16 +236,14 @@
     <script type="module">
         import { initializeApp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot, query, serverTimestamp, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        , limit, collection, doc, setDoc, addDoc, onSnapshot, query, serverTimestamp, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import "https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js";
 
         // Global variables provided by the Canvas environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'bharat-one-sp getDocs, limit,aces';
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        if (Object.keys(firebaseConfig).length === 0 || initialAuthToken === null) {
-            console.error("Firebase config or initial auth token is missing. Using hardcoded mock data/config.");
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'bharat-one-spaces';            console.error("Firebase config or initial auth token is missing. Using hardcoded mock data/config.");
             // Fallback config from user requirements
             window.firebaseConfig = {
                 apiKey: "AIzaSyBqOWhjcTprZZn58C-F7pxedOmINpnM",
