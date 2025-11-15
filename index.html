@@ -449,6 +449,9 @@
             }
             
             console.log('Dashboard data loaded successfully');
+
+                    // Hide loading indicator
+        document.getElementById('loading').classList.add('hidden');
         } catch (error) {
             console.error('Error loading dashboard data:', error);
         }
