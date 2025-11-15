@@ -240,7 +240,7 @@
         import "https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js";
 
         // Global variables provided by the Canvas environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'bharat-one-spaces';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'bharat-one-sp getDocs, limit,aces';
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
@@ -391,7 +391,74 @@
 
             // Populate static dropdowns
             populateDropdowns();
+            
+        // Load and display dashboard data
+        await loadDashboardData();
+        
+        // Hide loading indicator
+        document.getElementById('loading').classList.add('hidden');
         }
+
+            // --- Load Dashboard Data ---
+    async function loadDashboardData() {
+        try {
+            // Load cash floats
+            const floatsSnapshot = await getDocs(collection(db, getCollectionPath('cashFloats')));
+            const floats = [];
+            floatsSnapshot.forEach(doc => {
+                floats.push({ id: doc.id, ...doc.data() });
+            });
+            
+            // Display float balances
+            const floatBalancesDiv = document.getElementById('float-balances');
+            if (floatBalancesDiv && floats.length > 0) {
+                let html = '<div class="grid grid-cols-3 gap-4">';
+                floats.forEach(float => {
+                    html += `
+                        <div class="bg-gray-800 p-4 rounded">
+                            <div class="text-sm text-gray-400">${float.name}</div>
+                            <div class="text-2xl font-bold text-green-400">₹${(float.balance || 0).toLocaleString('en-IN')}</div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                floatBalancesDiv.innerHTML = html;
+            }
+            
+            // Load recent transactions
+            const paymentsRef = collection(db, getCollectionPath('payments'));
+            const paymentsQuery = query(paymentsRef, limit(10));
+            const paymentsSnapshot = await getDocs(paymentsQuery);
+            const payments = [];
+            paymentsSnapshot.forEach(doc => {
+                payments.push({ id: doc.id, ...doc.data() });
+            });
+            
+            // Display transactions
+            const transactionsBody = document.getElementById('transactions-list');
+            if (transactionsBody && payments.length > 0) {
+                let html = '';
+                payments.forEach(payment => {
+                    const date = payment.timestamp ? new Date(payment.timestamp.seconds * 1000).toLocaleDateString('en-IN') : 'N/A';
+                    html += `
+                        <tr class="border-b border-gray-700">
+                            <td class="p-2">${date}</td>
+                            <td class="p-2">${payment.type || 'Payment'}</td>
+                            <td class="p-2">${payment.category || 'Rent'}</td>
+                            <td class="p-2">${payment.unitId || 'N/A'}</td>
+                            <td class="p-2 text-green-400">₹${(payment.amount || 0).toLocaleString('en-IN')}</td>
+                            <td class="p-2">${payment.float || 'N/A'}</td>
+                        </tr>
+                    `;
+                });
+                transactionsBody.innerHTML = html;
+            }
+            
+            console.log('Dashboard data loaded successfully');
+        } catch (error) {
+            console.error('Error loading dashboard data:', error);
+        }
+    }
 
         // --- Initial Data Population (Set/Update logic) ---
         async function ensureFloats() {
